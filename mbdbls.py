@@ -5,7 +5,7 @@
 # Based on code from "galloglass" and "Robert Munafo" found at:
 # http://stackoverflow.com/questions/3085153/how-to-parse-the-manifest-mbdb-file-in-an-ios-4-0-itunes-backup
 #
-# Modifications by Hal Pomeranz (hal@deer-run.com)
+# Modifications by Hal Pomeranz (hal@deer-run.com), 2014-04-27
 # This code released under Creative Commons Attribution license (CC BY)
 #
 
