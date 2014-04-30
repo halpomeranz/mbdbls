@@ -16,6 +16,7 @@ from time import strftime, localtime, gmtime
 
 parser = argparse.ArgumentParser(description='Parse Manifest.mbdb files from iTunes backup directories')
 parser.add_argument('-f', '--file', default='Manifest.mbdb', metavar='FILE', help='File to parse (default Manifest.mbdb)')
+parser.add_argument('--tab', action='store_true', help='tab-delimited output (implies -l)')
 parser.add_argument('-T', '--time_fmt', choices=['l','e','u'], default='l', help='Output (l)ocaltime, (u)tc, (e)poch (default localtime)')
 
 output_fmt = parser.add_mutually_exclusive_group()
@@ -28,6 +29,10 @@ sort_type.add_argument('-S', action='store_true', help='Sort by file size')
 parser.add_argument('-r', action='store_false', help='Reverse sort order')
 
 args = parser.parse_args()
+
+if args.tab:
+    args.l = True
+    args.s = False
 
 sorting = {}
 if args.S:
@@ -124,19 +129,26 @@ def fileinfo_str(f):
     if args.s: return f['fullpath']
     if not args.l: return ("%s %s" % (f['fileID'], f['fullpath']))
 
+    if args.tab: 
+        fmt_str = "%s%s\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s"
+        sep_chr = '\t'
+    else:
+        fmt_str = "%s%s %5d %5d %7d %s  %s  %s  %s %s::%s"
+        sep_chr = ' '
+
     if (f['mode'] & 0xE000) == 0xA000: type = 'l' # symlink
     elif (f['mode'] & 0xE000) == 0x8000: type = '-' # file
     elif (f['mode'] & 0xE000) == 0x4000: type = 'd' # dir
     else: 
         print >> sys.stderr, "Unknown file type %04x for %s" % (f['mode'], fileinfo_str(f, False))
         type = '?' # unknown
-    info = ("%s%s %5d %5d %7d %s  %s  %s  %s %s::%s" % 
+    info = (fmt_str %
             (type, modestr(f['mode']&0x0FFF) , f['userid'], f['groupid'], f['filelen'], 
              timestr(f['mtime']), timestr(f['atime']), timestr(f['ctime']), 
              f['fileID'], f['domain'], f['filename']))
     if type == 'l': info = info + ' -> ' + f['linktarget'] # symlink destination
     for name, value in f['properties'].items(): # extra properties
-        info = info + ' ' + name + '=' + repr(value)
+        info = info + sep_chr + name + '=' + repr(value)
     return info
 
 if __name__ == '__main__':
